@@ -1,5 +1,4 @@
 import React from 'react';
-import Auxiliary from '../../../hoc/Auxiliary';
 import Button from '../../UI/Button/Button';
 const orderSummary = (props) => {
 
@@ -8,7 +7,7 @@ const orderSummary = (props) => {
                                 return (<li key={igKey}> <span style={{textTransform : 'capitalize'}}>{igKey}</span> : {props.ingredient[igKey]}</li>)
                                 })
     return (
-        <Auxiliary>
+        <React.Fragment>
             <h3>Your Order</h3>
             <p>A delicious Burger with the following ingredient :</p>
             <ul>
@@ -18,7 +17,7 @@ const orderSummary = (props) => {
             <p>Contunie to Check out ?</p>
             <Button btnType="Danger" Clicked = {props.canselClicked}>Cansel</Button>
             <Button btnType="Success" Clicked= {props.continueClicked}>Continue</Button>
-            </Auxiliary>
+            </React.Fragment>
     );
 };
 
