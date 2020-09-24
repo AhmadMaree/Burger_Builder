@@ -1,9 +1,11 @@
 import React , {Component} from 'react';
-
+import axios from '../../axios-Order';
 import Burger from '../../components/Burger/Burger';
 import BuildControls from '../../components/Burger/BuildControls/BuildControls';
 import Modal from '../../components/UI/Modal/Modal';
 import OrderSummary from '../../components/Burger/OrderSummary/OrderSummary';
+import Spinner from '../../components/UI/Sppinner/Spinner';
+import withErrorHandler from '../../hoc/withErrorHandler/withErrorHandler';
 const INGREDIENT_PRICE = {
     cheese : 0.3 , 
     salad : 0.5 , 
@@ -14,15 +16,27 @@ const INGREDIENT_PRICE = {
 class BurgerBulider extends Component {
 
     state = {
-        ingredient : {
-            bacon : 0, 
-            meat :0 ,
-            salad :0,
-            cheese :0
-        },
+        ingredient : null,
         totlaPrice : 3,
         purchasable : false ,
         purchasing: false,
+        Loading : false ,
+        Erorr : false
+    }
+
+    componentDidMount (){
+        axios.get("https://burger-builder-1ae7a.firebaseio.com/ingredient.json")
+             .then(response => {
+                 this.setState({
+                     
+                    ingredient:response.data
+                 })
+                 console.log(this.state.ingredient); 
+             }).catch(err=>{
+                this.setState({
+                    Erorr : true 
+                })
+             })
     }
 
     updatePerchasebleState (ingredient){
@@ -51,7 +65,27 @@ class BurgerBulider extends Component {
     })
     }
     purchaseContinueHandler= () => {
-        alert ("Continue ... ");
+       // alert ("Continue ... ");
+       this.setState({Loading : true});
+       const order = {
+           ingreadient : this.state.ingredient , 
+           price : this.state.totlaPrice,
+           custmor : {
+               name : "Ahmad",
+               email : "ahamdmarei1998@gmail.com",
+
+           },
+           
+       }
+        axios.post("/orders.json", order)
+             .then(response => {
+                this.setState({Loading : false , purchasing : false});
+             }).catch(err =>{
+                this.setState({Loading : false, purchasing: false});
+                console.log(err);
+             });
+
+
     }
 
     addIngredientHandler = (type) => {
@@ -102,28 +136,49 @@ class BurgerBulider extends Component {
         for( let key in disableInfo) {
             disableInfo[key] = disableInfo[key] <=0 ;
         }
+        let LoadingSppiner=  null
+
+        
+
+        let burger = this.state.Erorr ? <p style={{textAlign :"center"}}>There are Erorr in ingreadient!</p> : <Spinner/>;
+
+        if(this.state.ingredient) {
+            burger = (
+                <React.Fragment>
+                    <Burger ingredient = {this.state.ingredient} />
+                    <BuildControls 
+
+                            ingredientAdd={this.addIngredientHandler}
+                            removeIngredient={this.removeIngredientHandler}
+                            disabled={disableInfo}
+                            price={this.state.totlaPrice}
+                            purchasable ={this.state.purchasable}
+                            Oreder={this.purchaseHandler}
+                    />
+                </React.Fragment>
+            ) ;
+           LoadingSppiner= (<OrderSummary
+                                totalPrice={this.state.totlaPrice}
+                                canselClicked ={this.purchaseCloseHandler}
+                                continueClicked={this.purchaseContinueHandler}
+                                ingredient={this.state.ingredient}/>);
+
+           
+        }
+        if(this.state.Loading){
+            LoadingSppiner = <Spinner/>
+       }
 
         return (
         <React.Fragment>
 
             <Modal show = {this.state.purchasing} closeModal={this.purchaseCloseHandler}>
-                    <OrderSummary
-                    totalPrice={this.state.totlaPrice}
-                    canselClicked ={this.purchaseCloseHandler}
-                    continueClicked={this.purchaseContinueHandler}
-                    ingredient={this.state.ingredient}/>
+                   
+                   {LoadingSppiner}
+                   
             </Modal>    
-            <Burger ingredient = {this.state.ingredient} />
-            <BuildControls 
-
-                    ingredientAdd={this.addIngredientHandler}
-                    removeIngredient={this.removeIngredientHandler}
-                    disabled={disableInfo}
-                    price={this.state.totlaPrice}
-                    purchasable ={this.state.purchasable}
-                    Oreder={this.purchaseHandler}
-            />
-
+            
+            {burger}
 
         </React.Fragment>
         );
@@ -131,4 +186,4 @@ class BurgerBulider extends Component {
 
 }
 
-export default BurgerBulider;
+export default withErrorHandler(BurgerBulider,axios);
