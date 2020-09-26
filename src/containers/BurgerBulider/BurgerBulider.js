@@ -66,26 +66,18 @@ class BurgerBulider extends Component {
     }
     purchaseContinueHandler= () => {
        // alert ("Continue ... ");
-       this.setState({Loading : true});
-       const order = {
-           ingreadient : this.state.ingredient , 
-           price : this.state.totlaPrice,
-           custmor : {
-               name : "Ahmad",
-               email : "ahamdmarei1998@gmail.com",
-
-           },
-           
-       }
-        axios.post("/orders.json", order)
-             .then(response => {
-                this.setState({Loading : false , purchasing : false});
-             }).catch(err =>{
-                this.setState({Loading : false, purchasing: false});
-                console.log(err);
-             });
-
-
+     
+            
+             const quaryParams = [];
+             for ( let i in this.state.ingredient) {
+                    quaryParams.push(encodeURIComponent(i)+ '=' + encodeURIComponent(this.state.ingredient[i]));
+             }
+             quaryParams.push('price=' + this.state.totlaPrice);
+             const quaryStr= quaryParams.join('&');
+             this.props.history.push({
+                pathname :'/checkout',
+                search :'?' + quaryStr ,
+             })
     }
 
     addIngredientHandler = (type) => {
