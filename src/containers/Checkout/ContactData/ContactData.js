@@ -4,6 +4,8 @@ import classes from './ContactData.module.css';
 import axios from '../../../axios-Order';
 import Sppinner from '../../../components/UI/Sppinner/Spinner';
 
+import Input from '../../../components/UI/Input/Input';
+
 class ContactData extends Component {
 
     state ={
@@ -51,11 +53,11 @@ class ContactData extends Component {
 
             let form = (
                 <form>
-                        <input className ={classes.Input} type="text" name ="name"  placeholder="Your Name" />
-                        <input className ={classes.Input} type= "email" name ="email"  placeholder="Email" />
-                        <input className ={classes.Input} type="text" name ="street"  placeholder="Street" />
-                        <input className ={classes.Input} type="text" name ="postal"  placeholder="Postal Code" />
-                        <Button btnType="Success" Clicked={this.OrderHandler} >ORDER</Button>
+                        <Input  inputType ={'input'} type="text" name ="name"  placeholder="Your Name" />
+                        <Input inputType ={'input'}  type= "email" name ="email"  placeholder="Email" />
+                        <Input  inputType ={'input'} type="text" name ="street"  placeholder="Street" />
+                        <Input  inputType ={'input'} type="text" name ="postal"  placeholder="Postal Code" />
+                        <Button  btnType="Success" Clicked={this.OrderHandler} >ORDER</Button>
                     </form>
             );
             if(this.state.Loading){

@@ -6,11 +6,16 @@ class Checkout extends Component {
 
     
     state ={
-        ingredients : null,
+        ingredients : {
+            salad : 0 ,
+            meat : 0 ,
+            cheese : 0 ,
+            bacon : 0 ,
+        },
         Price : 0 ,
     }
 
-    componentWillMount () {
+    componentDidMount () {
         
         const quary = new URLSearchParams(this.props.location.search);
         const ingredients= {};
