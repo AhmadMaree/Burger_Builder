@@ -1,4 +1,5 @@
 import React, { Component } from 'react'; 
+import {connect} from 'react-redux';
 import Button from '../../../components/UI/Button/Button';
 import classes from './ContactData.module.css';
 import axios from '../../../axios-Order';
@@ -31,7 +32,8 @@ class ContactData extends Component {
                     type :'text'
                 },
                 Validation : {
-                    required : true
+                    required : true ,
+                    isEmail : true 
                 },
                 valid : false ,
                 value : '',
@@ -59,7 +61,8 @@ class ContactData extends Component {
                 Validation : {
                     required : true , 
                     maxlen : 5 ,
-                    minlen : 5
+                    minlen : 5 ,
+                    isNumeric: true,
                 },
                 valid : false ,
                 value : '',
@@ -117,6 +120,15 @@ class ContactData extends Component {
             isValid = value.length >= rules.minlen && isValid;
 
         }
+        if (rules.isEmail) {
+            const pattern = /[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/;
+            isValid = pattern.test(value) && isValid;
+        }
+        
+        if (rules.isNumeric) {
+            const pattern = /^\d+$/;
+            isValid = pattern.test(value) && isValid;
+        }
             return isValid ;
     }
 
@@ -133,7 +145,7 @@ class ContactData extends Component {
              formData[elementForm] = this.state.OrderForm[elementForm].value;
          }
         const order = {
-           ingreadient : this.props.ingredients , 
+           ingreadient : this.props.ings , 
            price : this.props.price,
            OrderData : formData,
         }
@@ -213,4 +225,12 @@ class ContactData extends Component {
     }
 }
 
-export default ContactData;
+
+const mapStateToProps = state => {
+    return {
+        ings : state.ingredient ,
+        price : state.totlaPrice
+    }
+}
+
+export default connect(mapStateToProps)(ContactData);

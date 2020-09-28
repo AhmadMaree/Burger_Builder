@@ -11,8 +11,6 @@ const withErrorHandler = (WrappedComponent , axios) => {
             super(props);
             this.state ={
                 error: null,
-    
-                
             };
           this.reqInterceptor =  axios.interceptors.request.use((req) => {
                 this.setState({ error: null });

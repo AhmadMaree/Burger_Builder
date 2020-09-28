@@ -1,4 +1,6 @@
 import React , {Component} from 'react';
+import {connect} from 'react-redux';
+
 import axios from '../../axios-Order';
 import Burger from '../../components/Burger/Burger';
 import BuildControls from '../../components/Burger/BuildControls/BuildControls';
@@ -6,26 +8,20 @@ import Modal from '../../components/UI/Modal/Modal';
 import OrderSummary from '../../components/Burger/OrderSummary/OrderSummary';
 import Spinner from '../../components/UI/Sppinner/Spinner';
 import withErrorHandler from '../../hoc/withErrorHandler/withErrorHandler';
-const INGREDIENT_PRICE = {
-    cheese : 0.3 , 
-    salad : 0.5 , 
-    meat : 1.7 , 
-    bacon : 0.7, 
-}
+import * as actionType from '../../store/actions/actionType';
+
+
 
 class BurgerBulider extends Component {
 
     state = {
-        ingredient : null,
-        totlaPrice : 3,
-        purchasable : false ,
         purchasing: false,
         Loading : false ,
         Erorr : false
     }
 
     componentDidMount (){
-        axios.get("https://burger-builder-1ae7a.firebaseio.com/ingredient.json")
+        /*axios.get("https://burger-builder-1ae7a.firebaseio.com/ingredient.json")
              .then(response => {
                  this.setState({
                      
@@ -36,7 +32,7 @@ class BurgerBulider extends Component {
                 this.setState({
                     Erorr : true 
                 })
-             })
+             })*/
     }
 
     updatePerchasebleState (ingredient){
@@ -48,11 +44,7 @@ class BurgerBulider extends Component {
                         return sum+el ;
                     },0);
         
-        
-        this.setState({
-            purchasable : sum >0
-        })
-        
+        return sum >0 ;   
     }
     purchaseHandler =() => {
         this.setState({
@@ -65,64 +57,13 @@ class BurgerBulider extends Component {
     })
     }
     purchaseContinueHandler= () => {
-       // alert ("Continue ... ");
-     
             
-             const quaryParams = [];
-             for ( let i in this.state.ingredient) {
-                    quaryParams.push(encodeURIComponent(i)+ '=' + encodeURIComponent(this.state.ingredient[i]));
-             }
-             quaryParams.push('price=' + this.state.totlaPrice);
-             const quaryStr= quaryParams.join('&');
-             this.props.history.push({
-                pathname :'/checkout',
-                search :'?' + quaryStr ,
-             })
-    }
+             this.props.history.push('/checkout');
 
-    addIngredientHandler = (type) => {
-        const oldCount =this.state.ingredient[type];
-        const updateCount= oldCount+1;
-        const updatedIngredient ={ 
-            ...this.state.ingredient
-        };
-
-        updatedIngredient[type] = updateCount;
-        const additionPrice = INGREDIENT_PRICE[type];
-        const oldPrice = this.state.totlaPrice;
-        const newPrice = oldPrice + additionPrice ; 
-
-        this.setState({
-            ingredient:updatedIngredient,
-            totlaPrice : newPrice,
-        })
-        this.updatePerchasebleState(updatedIngredient);
-    }
-    removeIngredientHandler=(type) => {
-        const oldCount =this.state.ingredient[type];
-        if(oldCount <= 0){
-            return;
-        }
-        const updateCount= oldCount-1;
-        const updatedIngredient ={ 
-            ...this.state.ingredient
-        };
-
-        updatedIngredient[type] = updateCount;
-        const additionPrice = INGREDIENT_PRICE[type];
-        const oldPrice = this.state.totlaPrice;
-        const newPrice = oldPrice - additionPrice ; 
-
-        this.setState({
-            ingredient:updatedIngredient,
-            totlaPrice : newPrice,
-        })
-
-        this.updatePerchasebleState(updatedIngredient);
     }
     render(){ 
         const disableInfo = {
-            ...this.state.ingredient
+            ...this.props.ings
         };
 
         for( let key in disableInfo) {
@@ -134,26 +75,26 @@ class BurgerBulider extends Component {
 
         let burger = this.state.Erorr ? <p style={{textAlign :"center"}}>There are Erorr in ingreadient!</p> : <Spinner/>;
 
-        if(this.state.ingredient) {
+        if(this.props.ings) {
             burger = (
                 <React.Fragment>
-                    <Burger ingredient = {this.state.ingredient} />
+                    <Burger ingredient = {this.props.ings} />
                     <BuildControls 
 
-                            ingredientAdd={this.addIngredientHandler}
-                            removeIngredient={this.removeIngredientHandler}
+                            ingredientAdd={this.props.onIngerdientAdd}
+                            removeIngredient={this.props.onIngerdientRemove}
                             disabled={disableInfo}
-                            price={this.state.totlaPrice}
-                            purchasable ={this.state.purchasable}
+                            price={this.props.price}
+                            purchasable ={this.updatePerchasebleState(this.props.ings)}
                             Oreder={this.purchaseHandler}
                     />
                 </React.Fragment>
             ) ;
            LoadingSppiner= (<OrderSummary
-                                totalPrice={this.state.totlaPrice}
+                                totalPrice={this.props.price}
                                 canselClicked ={this.purchaseCloseHandler}
                                 continueClicked={this.purchaseContinueHandler}
-                                ingredient={this.state.ingredient}/>);
+                                ingredient={this.props.ings}/>);
 
            
         }
@@ -178,4 +119,19 @@ class BurgerBulider extends Component {
 
 }
 
-export default withErrorHandler(BurgerBulider,axios);
+const mapStateToProps = state => {
+    return {
+      ings : state.ingredient , 
+      price : state.totlaPrice
+    }
+}
+
+const mapDispatchToProps = dispatch => {
+    return {
+        onIngerdientAdd : (ingsName) => dispatch({type : actionType.ADD_INGREDIENT , ingredientName : ingsName}) ,
+        onIngerdientRemove : (ingsName)=> dispatch({type : actionType.REMOVE_INGREDIENT , ingredientName : ingsName})
+
+    }
+}
+
+export default connect(mapStateToProps,mapDispatchToProps) (withErrorHandler(BurgerBulider,axios));
