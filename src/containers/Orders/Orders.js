@@ -1,52 +1,56 @@
 import React, { Component } from 'react' ; 
+import {connect} from 'react-redux'
+
 import Order from '../../components/Order/Order';
 import axios from '../../axios-Order';
 import withErrorHandler from '../../hoc/withErrorHandler/withErrorHandler';
-
+import * as actions from '../../store/actions/index';
+import Sppinner from '../../components/UI/Sppinner/Spinner';
 
 class Orders extends Component {
 
-        state ={
-            loading : true ,
-            Order : [],
-        }   
+        
 
     componentDidMount(){
-        axios.get('/orders.json')
-        .then(res =>{
-            const fetchOrder = []; 
-            for(let key in res.data){
-                fetchOrder.push({
-                     ...res.data[key] , 
-                     id : key
-                });
-            }
-            this.setState({
-                loading : false,
-                Order : fetchOrder
-            })
-
-        }).catch(err=>{
-            this.setState({
-                loading : false
-            })
-        })
+        this.props.onFetchOrder()
     }
 
     render () {
-        return (
-            <div>
-                {this.state.Order.map(item => (
+
+        let Orders = <Sppinner/>
+        if(!this.props.Loading) {
+            Orders =               
+              this.props.Order.map(item => (
                     <Order 
                         ingredients= {item.ingreadient}
                         price = {item.price}
                         key={item.id}
                     
                     />
-                ))}
+                ))
+            
+        }
+
+        return (
+            <div>
+                    {Orders}
             </div>
         )
     }
 }
 
-export default withErrorHandler(Orders,axios);
+const mapStateToProps = state => {
+    return {
+        Order : state.order.Order ,
+        Loading : state.order.Loading,
+
+    }
+}
+
+const mapDispatchToProps = dispatch => {
+    return { 
+        onFetchOrder : () => dispatch(actions.fetchOrder())
+    }
+}
+
+export default connect(mapStateToProps,mapDispatchToProps)(withErrorHandler(Orders,axios));

@@ -8,7 +8,7 @@ import Modal from '../../components/UI/Modal/Modal';
 import OrderSummary from '../../components/Burger/OrderSummary/OrderSummary';
 import Spinner from '../../components/UI/Sppinner/Spinner';
 import withErrorHandler from '../../hoc/withErrorHandler/withErrorHandler';
-import * as actionType from '../../store/actions/actionType';
+import * as action from '../../store/actions/index';
 
 
 
@@ -16,23 +16,10 @@ class BurgerBulider extends Component {
 
     state = {
         purchasing: false,
-        Loading : false ,
-        Erorr : false
     }
 
-    componentDidMount (){
-        /*axios.get("https://burger-builder-1ae7a.firebaseio.com/ingredient.json")
-             .then(response => {
-                 this.setState({
-                     
-                    ingredient:response.data
-                 })
-                 console.log(this.state.ingredient); 
-             }).catch(err=>{
-                this.setState({
-                    Erorr : true 
-                })
-             })*/
+    componentDidMount () {
+        this.props.onInilizationIngredients()
     }
 
     updatePerchasebleState (ingredient){
@@ -57,7 +44,7 @@ class BurgerBulider extends Component {
     })
     }
     purchaseContinueHandler= () => {
-            
+             this.props.onPurchaseInit();
              this.props.history.push('/checkout');
 
     }
@@ -73,7 +60,7 @@ class BurgerBulider extends Component {
 
         
 
-        let burger = this.state.Erorr ? <p style={{textAlign :"center"}}>There are Erorr in ingreadient!</p> : <Spinner/>;
+        let burger = this.props.Erorr ? <p style={{textAlign :"center"}}>There are Erorr in ingreadient!</p> : <Spinner/>;
 
         if(this.props.ings) {
             burger = (
@@ -98,9 +85,6 @@ class BurgerBulider extends Component {
 
            
         }
-        if(this.state.Loading){
-            LoadingSppiner = <Spinner/>
-       }
 
         return (
         <React.Fragment>
@@ -121,16 +105,18 @@ class BurgerBulider extends Component {
 
 const mapStateToProps = state => {
     return {
-      ings : state.ingredient , 
-      price : state.totlaPrice
+      ings : state.burgerBuilder.ingredient , 
+      price : state.burgerBuilder.totlaPrice , 
+      Erorr : state.burgerBuilder.Erorr , 
     }
 }
 
 const mapDispatchToProps = dispatch => {
     return {
-        onIngerdientAdd : (ingsName) => dispatch({type : actionType.ADD_INGREDIENT , ingredientName : ingsName}) ,
-        onIngerdientRemove : (ingsName)=> dispatch({type : actionType.REMOVE_INGREDIENT , ingredientName : ingsName})
-
+        onIngerdientAdd : (ingsName) => dispatch(action.addIngredient(ingsName)) ,
+        onIngerdientRemove : (ingsName)=> dispatch(action.removeIngredient(ingsName)) ,
+        onInilizationIngredients : () => dispatch(action.initIngredients()),
+        onPurchaseInit : () => dispatch(action.purchaseInit())
     }
 }
 
