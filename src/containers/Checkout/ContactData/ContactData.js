@@ -9,6 +9,7 @@ import Sppinner from '../../../components/UI/Sppinner/Spinner';
 import Input from '../../../components/UI/Input/Input';
 import withErrorHandler from '../../../hoc/withErrorHandler/withErrorHandler'
 import * as OrderAciton from '../../../store/actions/index';
+import {updateObject , checkValidation} from '../../../shared/utility';
 class ContactData extends Component {
 
     state ={
@@ -106,33 +107,7 @@ class ContactData extends Component {
         
     }
 
-    checkValidation (value,rules) {
-        let isValid = true ; 
-
-        if(rules.required) {
-
-            isValid = value.trim() !== '' && isValid ;
-        }
-
-        if(rules.maxlen) {
-                isValid = value.length <= rules.maxlen && isValid;
-        }
-
-        if(rules.minlen) {
-            isValid = value.length >= rules.minlen && isValid;
-
-        }
-        if (rules.isEmail) {
-            const pattern = /[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/;
-            isValid = pattern.test(value) && isValid;
-        }
-        
-        if (rules.isNumeric) {
-            const pattern = /^\d+$/;
-            isValid = pattern.test(value) && isValid;
-        }
-            return isValid ;
-    }
+    
 
     
 
@@ -148,29 +123,27 @@ class ContactData extends Component {
            ingreadient : this.props.ings , 
            price : this.props.price,
            OrderData : formData,
+           userId : this.props.userid,
         }
-        this.props.onOrderBurger(order);
+        this.props.onOrderBurger(order , this.props.token);
 
         
     }
 
     onChnageInputHandler =(event,indexInputValue) =>{
-         const UpdateOrderForm = {
-             ...this.state.OrderForm 
-         }
-         const UpdateInsideOrderForm = {
-             ...UpdateOrderForm[indexInputValue]
-         }
-         UpdateInsideOrderForm.value=event.target.value;
-         UpdateInsideOrderForm.valid = this.checkValidation(UpdateInsideOrderForm.value,UpdateInsideOrderForm.Validation);
-         UpdateInsideOrderForm.touched = true;
-         UpdateOrderForm[indexInputValue] = UpdateInsideOrderForm ; 
-
+         
+         const UpdateInsideOrderForm = updateObject(this.state.OrderForm[indexInputValue],{
+                value :event.target.value,
+                valid:checkValidation(event.target.value,this.state.OrderForm[indexInputValue].Validation),
+                touched : true ,
+         });
+         const UpdateOrderForm = updateObject(this.state.OrderForm ,{
+            [indexInputValue] :UpdateInsideOrderForm
+        })
          let formisValid = true ;
          for(let inputIdetifier in UpdateOrderForm) {
                 formisValid = UpdateOrderForm[inputIdetifier].valid && formisValid;
          }
-         console.log(formisValid);
          this.setState({
              OrderForm : UpdateOrderForm ,
              formIsValid : formisValid ,
@@ -226,12 +199,14 @@ const mapStateToProps = state => {
         ings : state.burgerBuilder.ingredient ,
         price : state.burgerBuilder.totlaPrice , 
         Loading : state.order.Loading ,
+        token : state.auth.idToken,
+        userid : state.auth.userId,
     }
 }
 
 const mapDispatchToProps = dispatch => {
     return {
-        onOrderBurger : (orderData) => dispatch(OrderAciton.purchaseBurger(orderData))
+        onOrderBurger : (orderData , token) => dispatch(OrderAciton.purchaseBurger(orderData , token))
     }
 }
 
